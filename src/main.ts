@@ -2,9 +2,16 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import * as compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Security: Helmet (headers de seguridad)
+  // app.use(helmet()); // Descomentar si instalas helmet
+
+  // Compression
+  app.use(compression());
 
   // Enable CORS - Allow multiple origins for development and production
   const allowedOrigins = [
@@ -43,25 +50,38 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
 
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('RentOS API')
-    .setDescription('API para el sistema de gestión de alquiler de vehículos')
+    .setDescription('API para el sistema de gestión de alquiler de vehículos RentOS')
     .setVersion('1.0')
     .addBearerAuth()
+    .addTag('health', 'Health check endpoints')
     .addTag('auth', 'Autenticación y autorización')
     .addTag('vehiculos', 'Gestión de vehículos')
     .addTag('clientes', 'Gestión de clientes')
     .addTag('reservas', 'Sistema de reservas')
     .addTag('tarifas', 'Tarifas dinámicas')
     .addTag('dashboard', 'Métricas y estadísticas')
-    .addTag('rag', 'Asistente IA')
+    .addTag('rag', 'Asistente IA con RAG')
     .addTag('notificaciones', 'Sistema de notificaciones')
     .addTag('tenants', 'Multi-tenancy')
     .addTag('mantenimiento', 'Gestión de mantenimiento')
+    .addTag('audit', 'Auditoría de cambios')
+    .addTag('reports', 'Reportes y análisis')
+    .addTag('backup', 'Backup y restauración')
+    .setContact(
+      'RentOS Team',
+      'https://github.com/rentos',
+      'contact@rentos.com',
+    )
+    .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
@@ -74,6 +94,8 @@ async function bootstrap() {
   console.log(`🚀 RentOS Backend running on: http://localhost:${port}`);
   console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
   console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
+  console.log(`🔒 Security: Validation, Logging, Error Handling`);
+  console.log(`📊 Features: Audit, Reports, Backup, RAG AI`);
   console.log('🚀 ============================================');
   console.log('');
 }
