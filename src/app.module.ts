@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { VehiculosModule } from './vehiculos/vehiculos.module';
 import { ClientesModule } from './clientes/clientes.module';
@@ -12,6 +13,11 @@ import { TenantsModule } from './tenants/tenants.module';
 import { MantenimientoModule } from './mantenimiento/mantenimiento.module';
 import { RagModule } from './rag/rag.module';
 import { HealthModule } from './health/health.module';
+import { AuditModule } from './audit/audit.module';
+import { ReportsModule } from './reports/reports.module';
+import { BackupModule } from './backup/backup.module';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 @Module({
   imports: [
@@ -44,6 +50,19 @@ import { HealthModule } from './health/health.module';
     TenantsModule,
     MantenimientoModule,
     RagModule,
+    AuditModule,
+    ReportsModule,
+    BackupModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
   ],
 })
 export class AppModule {}
