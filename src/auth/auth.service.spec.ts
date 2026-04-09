@@ -100,8 +100,8 @@ describe('AuthService', () => {
 
       const result = await service.login(loginDto);
 
-      expect(result).toHaveProperty('access_token');
-      expect(result.access_token).toBe('mock-jwt-token');
+      expect(result).toHaveProperty('token');
+      expect(result.token).toBe('mock-jwt-token');
     });
 
     it('should throw UnauthorizedException for invalid credentials', async () => {

@@ -52,6 +52,7 @@ export class AuthService {
         tenantId: user.tenantId,
       },
       token,
+      access_token: token,
     };
   }
 
@@ -84,6 +85,7 @@ export class AuthService {
         tenantId: user.tenantId,
       },
       token,
+      access_token: token,
     };
   }
 

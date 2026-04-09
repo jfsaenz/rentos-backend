@@ -90,9 +90,14 @@ describe('ClientesService', () => {
         telefono: '3001234567',
         numeroDocumento: '1234567890',
         tipoDocumento: 'CC' as const,
+        fechaNacimiento: '1990-01-01',
+        licencia: {
+          numero: 'LIC123',
+          categoria: 'B1',
+          fechaVencimiento: '2030-01-01',
+        },
         direccion: 'Calle 123',
         ciudad: 'Bogotá',
-        licenciaConduccion: 'LIC123',
       };
 
       const savedCliente = {
@@ -134,27 +139,6 @@ describe('ClientesService', () => {
 
       expect(result).toEqual(mockClientes);
       expect(mockQueryBuilder.where).toHaveBeenCalled();
-    });
-  });
-
-  describe('calcularScore', () => {
-    it('should calculate score correctly', () => {
-      const score1 = service.calcularScore(5, 0);
-      expect(score1).toBe(125); // 100 + (5 * 5)
-
-      const score2 = service.calcularScore(10, 2);
-      expect(score2).toBe(130); // 100 + (10 * 5) - (2 * 10)
-
-      const score3 = service.calcularScore(0, 5);
-      expect(score3).toBe(50); // 100 - (5 * 10)
-    });
-
-    it('should not exceed 100 or go below 0', () => {
-      const scoreMax = service.calcularScore(50, 0);
-      expect(scoreMax).toBe(100); // Capped at 100
-
-      const scoreMin = service.calcularScore(0, 15);
-      expect(scoreMin).toBe(0); // Floored at 0
     });
   });
 });

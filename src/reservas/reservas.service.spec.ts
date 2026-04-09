@@ -62,10 +62,9 @@ describe('ReservasService', () => {
         totalFinal: 200,
         estado: 'confirmada' as const,
         desglose: {
-          subtotal: 180,
-          descuentos: 0,
-          recargos: 20,
-          deposito: 40,
+          dias: 4,
+          precioDia: 50,
+          totalExtras: 0,
         },
       };
 
@@ -90,10 +89,9 @@ describe('ReservasService', () => {
         totalFinal: 200,
         estado: 'confirmada' as const,
         desglose: {
-          subtotal: 180,
-          descuentos: 0,
-          recargos: 20,
-          deposito: 40,
+          dias: 4,
+          precioDia: 50,
+          totalExtras: 0,
         },
       };
 
@@ -116,11 +114,11 @@ describe('ReservasService', () => {
     it('should return disponible true if no conflicts', async () => {
       mockReservaRepository.find.mockResolvedValue([]);
 
-      const result = await service.verificarDisponibilidad({
-        vehiculoId: 1,
-        fechaInicio: '2026-05-01',
-        fechaFin: '2026-05-05',
-      });
+      const result = await service.verificarDisponibilidad(
+        1,
+        '2026-05-01',
+        '2026-05-05',
+      );
 
       expect(result.disponible).toBe(true);
     });
@@ -136,11 +134,11 @@ describe('ReservasService', () => {
         },
       ]);
 
-      const result = await service.verificarDisponibilidad({
-        vehiculoId: 1,
-        fechaInicio: '2026-05-01',
-        fechaFin: '2026-05-05',
-      });
+      const result = await service.verificarDisponibilidad(
+        1,
+        '2026-05-01',
+        '2026-05-05',
+      );
 
       expect(result.disponible).toBe(false);
     });
