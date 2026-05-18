@@ -45,6 +45,25 @@
               }
             }
           ]
+        },
+        {
+          "name": "Readiness",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health/ready"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('readiness responde', () => pm.expect([200, 503]).to.include(pm.response.code));",
+                  "pm.test('incluye checks', () => pm.expect(pm.response.json()).to.have.property('checks'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
     },

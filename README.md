@@ -58,6 +58,7 @@ La API queda disponible en:
 - API: `http://localhost:3001`
 - Swagger: `http://localhost:3001/api/docs`
 - Health check: `http://localhost:3001/health`
+- Readiness check: `http://localhost:3001/health/ready`
 
 ## Ejecucion con Docker
 
@@ -126,6 +127,7 @@ Flujo sugerido:
 - DTOs y `ValidationPipe` reducen entradas invalidas antes de llegar a la logica de negocio.
 - Swagger y Postman cubren la documentacion interactiva y la validacion manual de endpoints.
 - Docker estandariza la ejecucion para sustentacion y despliegue.
+- `/health/ready` valida conectividad real con PostgreSQL para despliegues cloud y health checks de contenedores.
 - `bcryptjs` evita fallas de compilacion nativa en entornos donde no se ejecutan scripts de instalacion, manteniendo hashing de contrasenas.
 
 ## Entrega

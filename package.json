@@ -90,6 +90,7 @@
     "collectCoverageFrom": [
       "auth/auth.service.ts",
       "clientes/clientes.service.ts",
+      "health/health.service.ts",
       "rag/rag.service.ts",
       "reservas/reservas.service.ts",
       "tarifas/tarifas.service.ts",
