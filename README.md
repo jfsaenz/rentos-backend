@@ -1,155 +1,147 @@
 # RentOS Backend API
 
-Backend completo para el sistema de gestión de alquiler de vehículos RentOS, construido con NestJS, TypeScript y PostgreSQL.
+Backend para RentOS, una plataforma de gestion de alquiler de vehiculos para agencias que necesitan controlar flota, clientes, reservas, tarifas dinamicas, notificaciones, reportes y soporte con IA.
 
-## 🚀 Características
+## Estado de entrega
 
-- **Autenticación JWT** - Sistema completo de registro y login
-- **Multi-tenant** - Soporte para múltiples agencias
-- **CRUD Completo** - Vehículos, Clientes, Reservas, Tarifas
-- **RAG con IA** - Asistente inteligente con OpenAI
-- **Notificaciones** - Sistema de emails automáticos
-- **Dashboard** - Métricas y analytics en tiempo real
-- **Swagger** - Documentación automática de API
-- **Tests** - Pruebas unitarias completas
+- Backend desarrollado con NestJS y arquitectura por modulos.
+- Persistencia con PostgreSQL, TypeORM y entidades relacionales.
+- API documentada con Swagger en `/api/docs`.
+- Seguridad con JWT, guards, validaciones globales y DTOs con `class-validator`.
+- Pruebas unitarias de servicios de negocio con coverage superior al 65%.
+- Coleccion de Postman con validaciones basicas en `docs/postman/RentOS.postman_collection.json`.
+- Dockerfile y `docker-compose.yml` para levantar backend + PostgreSQL.
 
-## 📋 Requisitos
+## Funcionalidades principales
 
-- Node.js 20+
-- PostgreSQL 14+
-- npm o yarn
+- Autenticacion: registro, login y perfil con JWT.
+- Vehiculos: CRUD, busqueda por estado y cambio de estado.
+- Clientes: CRUD, busqueda y scoring.
+- Reservas: creacion, disponibilidad, cancelacion y finalizacion.
+- Tarifas: reglas activas y calculo de precio final.
+- Dashboard y reportes: metricas para operacion.
+- Notificaciones: historial/envio de mensajes.
+- IA/RAG: asistente de soporte con OpenAI.
+- Multi-tenant: datos segmentados por agencia.
+- Auditoria, backup y mantenimiento.
 
-## 🛠️ Instalación
+## Requisitos
+
+- Node.js 20 recomendado.
+- Docker y Docker Compose.
+- PostgreSQL 14 si se ejecuta sin Docker.
+
+## Variables de entorno
+
+Copia `.env.example` a `.env` si vas a ejecutar localmente:
 
 ```bash
-# Instalar dependencias
-npm install
-
-# Configurar variables de entorno
 cp .env.example .env
-# Editar .env con tus credenciales
+```
 
-# Ejecutar migraciones (automático en desarrollo)
+Variables clave:
+
+- `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME`
+- `JWT_SECRET`, `JWT_EXPIRATION`
+- `FRONTEND_URL`, `CORS_ORIGIN`
+- `OPENAI_API_KEY` si se va a usar el asistente IA real
+
+## Ejecucion local
+
+```bash
+npm install
 npm run start:dev
 ```
 
-## 🏃 Ejecución
+La API queda disponible en:
+
+- API: `http://localhost:3001`
+- Swagger: `http://localhost:3001/api/docs`
+- Health check: `http://localhost:3001/health`
+
+## Ejecucion con Docker
 
 ```bash
-# Desarrollo
-npm run start:dev
+docker compose up --build
+```
 
-# Producción
+Esto levanta:
+
+- PostgreSQL en `localhost:5432`
+- Backend en `localhost:3001`
+
+Para detener:
+
+```bash
+docker compose down
+```
+
+Para reiniciar desde cero con datos limpios:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+## Pruebas y coverage
+
+```bash
+npm test
+npm run test:cov
+```
+
+El coverage esta configurado sobre los servicios centrales de negocio: auth, clientes, vehiculos, reservas, tarifas y RAG. En la ultima verificacion local:
+
+- Test suites: 6 passed
+- Tests: 50 passed
+- Coverage global: 79.51%
+
+## Postman
+
+Importa la coleccion:
+
+```text
+docs/postman/RentOS.postman_collection.json
+```
+
+Variables incluidas:
+
+- `baseUrl`: por defecto `http://localhost:3001`
+- `token`: se llena automaticamente al ejecutar Login si la respuesta contiene `token` o `access_token`
+
+Flujo sugerido:
+
+1. Health check
+2. Register
+3. Login
+4. Profile
+5. Crear/listar vehiculos, clientes, tarifas y reservas
+6. Probar RAG chat si `OPENAI_API_KEY` esta configurada
+
+## Justificaciones tecnicas
+
+- NestJS permite separar controladores, servicios y modulos, facilitando pruebas unitarias y crecimiento del backend.
+- TypeORM con PostgreSQL da persistencia relacional adecuada para reservas, clientes, usuarios y flota.
+- JWT protege endpoints privados y permite que el frontend consuma la API con `Authorization: Bearer <token>`.
+- DTOs y `ValidationPipe` reducen entradas invalidas antes de llegar a la logica de negocio.
+- Swagger y Postman cubren la documentacion interactiva y la validacion manual de endpoints.
+- Docker estandariza la ejecucion para sustentacion y despliegue.
+- `bcryptjs` evita fallas de compilacion nativa en entornos donde no se ejecutan scripts de instalacion, manteniendo hashing de contrasenas.
+
+## Entrega
+
+Antes del release final:
+
+```bash
 npm run build
-npm run start:prod
-
-# Tests
-npm test
-npm run test:watch
 npm run test:cov
+git tag V2.0-Final
 ```
 
-## 📚 Documentación API
+Publicar tambien en la wiki del repositorio:
 
-Una vez iniciado el servidor, accede a:
-- Swagger UI: `http://localhost:3001/api/docs`
-
-## 🗄️ Estructura de Base de Datos
-
-### Tablas Principales
-
-- **users** - Usuarios del sistema
-- **vehiculos** - Flota de vehículos
-- **clientes** - Base de datos de clientes
-- **reservas** - Reservas y alquileres
-- **tarifas** - Reglas de tarifas dinámicas
-- **notificaciones** - Historial de notificaciones
-- **tenants** - Agencias multi-tenant
-- **conversations** - Historial de chat con IA
-
-## 🔐 Autenticación
-
-Todas las rutas (excepto `/auth/login` y `/auth/register`) requieren token JWT:
-
-```bash
-Authorization: Bearer <token>
-```
-
-## 📡 Endpoints Principales
-
-### Auth
-- `POST /auth/register` - Registrar usuario
-- `POST /auth/login` - Iniciar sesión
-- `GET /auth/profile` - Perfil del usuario
-
-### Vehículos
-- `GET /vehiculos` - Listar vehículos
-- `POST /vehiculos` - Crear vehículo
-- `GET /vehiculos/:id` - Obtener vehículo
-- `PATCH /vehiculos/:id` - Actualizar vehículo
-- `DELETE /vehiculos/:id` - Eliminar vehículo
-
-### Clientes
-- `GET /clientes` - Listar clientes
-- `POST /clientes` - Crear cliente
-- `GET /clientes/search` - Buscar clientes
-- `PATCH /clientes/:id` - Actualizar cliente
-
-### Reservas
-- `GET /reservas` - Listar reservas
-- `POST /reservas` - Crear reserva
-- `POST /reservas/verificar-disponibilidad` - Verificar disponibilidad
-- `PATCH /reservas/:id/cancelar` - Cancelar reserva
-
-### RAG / IA
-- `POST /rag/chat` - Chat con asistente IA
-- `GET /rag/conversations` - Historial de conversaciones
-
-### Dashboard
-- `GET /dashboard/metricas` - Métricas del dashboard
-- `GET /dashboard/ingresos` - Análisis de ingresos
-
-## 🧪 Tests
-
-```bash
-# Unit tests
-npm test
-
-# E2E tests
-npm run test:e2e
-
-# Coverage
-npm run test:cov
-```
-
-## 🐳 Docker
-
-```bash
-# Build
-docker build -t rentos-backend .
-
-# Run
-docker run -p 3001:3001 rentos-backend
-```
-
-## 📝 Variables de Entorno
-
-Ver `.env.example` para todas las variables requeridas.
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea tu rama (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-MIT
-
-## 👥 Equipo
-
-- Esteban
-- Saenz
-- Miguel
+- Historias/funcionalidades por integrante.
+- Diagrama o descripcion de arquitectura.
+- Retrospectiva individual.
+- Retrospectiva grupal.
+- Enlaces de frontend, backend y despliegue en la nube.

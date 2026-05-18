@@ -13,6 +13,8 @@ describe('ClientesService', () => {
     create: jest.fn(),
     save: jest.fn(),
     remove: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
     createQueryBuilder: jest.fn(),
   };
 
@@ -128,8 +130,7 @@ describe('ClientesService', () => {
 
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
-        orWhere: jest.fn().mockReturnThis(),
-        setParameter: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue(mockClientes),
       };
 
@@ -139,6 +140,7 @@ describe('ClientesService', () => {
 
       expect(result).toEqual(mockClientes);
       expect(mockQueryBuilder.where).toHaveBeenCalled();
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalled();
     });
   });
 });

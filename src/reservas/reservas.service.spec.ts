@@ -13,7 +13,17 @@ describe('ReservasService', () => {
     create: jest.fn(),
     save: jest.fn(),
     remove: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
+
+  const mockReservaQuery = (reservas: any[] = []) => ({
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue(reservas),
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -70,7 +80,7 @@ describe('ReservasService', () => {
 
       const savedReserva = { id: 'res-1', ...createDto };
 
-      mockReservaRepository.find.mockResolvedValue([]);
+      mockReservaRepository.createQueryBuilder.mockReturnValue(mockReservaQuery([]));
       mockReservaRepository.create.mockReturnValue(createDto);
       mockReservaRepository.save.mockResolvedValue(savedReserva);
 
@@ -96,7 +106,7 @@ describe('ReservasService', () => {
       };
 
       // Simulate existing reservation
-      mockReservaRepository.find.mockResolvedValue([
+      mockReservaRepository.createQueryBuilder.mockReturnValue(mockReservaQuery([
         {
           id: 'res-existing',
           vehiculoId: 1,
@@ -104,7 +114,7 @@ describe('ReservasService', () => {
           fechaFin: '2026-05-07',
           estado: 'confirmada',
         },
-      ]);
+      ]));
 
       await expect(service.create(createDto)).rejects.toThrow(BadRequestException);
     });
@@ -112,7 +122,7 @@ describe('ReservasService', () => {
 
   describe('verificarDisponibilidad', () => {
     it('should return disponible true if no conflicts', async () => {
-      mockReservaRepository.find.mockResolvedValue([]);
+      mockReservaRepository.createQueryBuilder.mockReturnValue(mockReservaQuery([]));
 
       const result = await service.verificarDisponibilidad(
         1,
@@ -124,7 +134,7 @@ describe('ReservasService', () => {
     });
 
     it('should return disponible false if conflicts exist', async () => {
-      mockReservaRepository.find.mockResolvedValue([
+      mockReservaRepository.createQueryBuilder.mockReturnValue(mockReservaQuery([
         {
           id: 'res-1',
           vehiculoId: 1,
@@ -132,7 +142,7 @@ describe('ReservasService', () => {
           fechaFin: '2026-05-07',
           estado: 'confirmada',
         },
-      ]);
+      ]));
 
       const result = await service.verificarDisponibilidad(
         1,
@@ -151,11 +161,8 @@ describe('ReservasService', () => {
         estado: 'confirmada',
       };
 
-      mockReservaRepository.findOne.mockResolvedValue(reserva);
-      mockReservaRepository.save.mockResolvedValue({
-        ...reserva,
-        estado: 'cancelada',
-      });
+      mockReservaRepository.update.mockResolvedValue({ affected: 1 });
+      mockReservaRepository.findOne.mockResolvedValue({ ...reserva, estado: 'cancelada' });
 
       const result = await service.cancelar('res-1');
 
@@ -170,11 +177,8 @@ describe('ReservasService', () => {
         estado: 'confirmada',
       };
 
-      mockReservaRepository.findOne.mockResolvedValue(reserva);
-      mockReservaRepository.save.mockResolvedValue({
-        ...reserva,
-        estado: 'finalizada',
-      });
+      mockReservaRepository.update.mockResolvedValue({ affected: 1 });
+      mockReservaRepository.findOne.mockResolvedValue({ ...reserva, estado: 'finalizada' });
 
       const result = await service.finalizar('res-1');
 

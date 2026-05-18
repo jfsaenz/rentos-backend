@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 export async function seedDatabase(dataSource: DataSource) {
   console.log('🌱 Starting database seed...');

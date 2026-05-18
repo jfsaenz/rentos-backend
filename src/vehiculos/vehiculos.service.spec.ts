@@ -13,6 +13,8 @@ describe('VehiculosService', () => {
     create: jest.fn(),
     save: jest.fn(),
     remove: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -48,18 +50,18 @@ describe('VehiculosService', () => {
       expect(mockVehiculoRepository.find).toHaveBeenCalled();
     });
 
-    it('should filter by estado when provided', async () => {
+    it('should filter by tenant when provided', async () => {
       const mockVehiculos = [
         { id: 1, marca: 'Yamaha', modelo: 'MT-03', estado: 'available' },
       ];
 
       mockVehiculoRepository.find.mockResolvedValue(mockVehiculos);
 
-      const result = await service.findAll('available');
+      const result = await service.findAll('tenant-1');
 
       expect(result).toEqual(mockVehiculos);
       expect(mockVehiculoRepository.find).toHaveBeenCalledWith({
-        where: { estado: 'available' },
+        where: { tenantId: 'tenant-1' },
       });
     });
   });
@@ -125,26 +127,28 @@ describe('VehiculosService', () => {
       const updateDto = { estado: 'maintenance' as const };
       const updatedVehiculo = { ...existingVehiculo, ...updateDto };
 
-      mockVehiculoRepository.findOne.mockResolvedValue(existingVehiculo);
-      mockVehiculoRepository.save.mockResolvedValue(updatedVehiculo);
+      mockVehiculoRepository.update.mockResolvedValue({ affected: 1 });
+      mockVehiculoRepository.findOne.mockResolvedValue(updatedVehiculo);
 
       const result = await service.update(1, updateDto);
 
       expect(result).toEqual(updatedVehiculo);
-      expect(mockVehiculoRepository.save).toHaveBeenCalled();
+      expect(mockVehiculoRepository.update).toHaveBeenCalledWith(1, updateDto);
     });
   });
 
   describe('remove', () => {
     it('should remove a vehiculo', async () => {
-      const vehiculo = { id: 1, marca: 'Yamaha', modelo: 'MT-03' };
+      mockVehiculoRepository.delete.mockResolvedValue({ affected: 1 });
 
-      mockVehiculoRepository.findOne.mockResolvedValue(vehiculo);
-      mockVehiculoRepository.remove.mockResolvedValue(vehiculo);
+      await expect(service.remove(1)).resolves.toBeUndefined();
+      expect(mockVehiculoRepository.delete).toHaveBeenCalledWith(1);
+    });
 
-      await service.remove(1);
+    it('should throw NotFoundException when removing a missing vehiculo', async () => {
+      mockVehiculoRepository.delete.mockResolvedValue({ affected: 0 });
 
-      expect(mockVehiculoRepository.remove).toHaveBeenCalledWith(vehiculo);
+      await expect(service.remove(999)).rejects.toThrow(NotFoundException);
     });
   });
 });

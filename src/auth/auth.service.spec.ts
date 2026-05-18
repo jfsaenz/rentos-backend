@@ -3,13 +3,11 @@ import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { UnauthorizedException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let jwtService: JwtService;
-
   const mockUserRepository = {
     findOne: jest.fn(),
     create: jest.fn(),
@@ -36,7 +34,7 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    jwtService = module.get<JwtService>(JwtService);
+    module.get<JwtService>(JwtService);
   });
 
   afterEach(() => {
@@ -49,12 +47,13 @@ describe('AuthService', () => {
         email: 'test@example.com',
         password: 'password123',
         nombre: 'Test User',
-        rol: 'admin' as const,
+        role: 'admin' as const,
       };
 
       mockUserRepository.findOne.mockResolvedValue(null);
-      mockUserRepository.create.mockReturnValue({ ...registerDto, id: 1 });
-      mockUserRepository.save.mockResolvedValue({ ...registerDto, id: 1 });
+      mockUserRepository.create.mockImplementation((data) => ({ ...data, id: 'user-1' }));
+      mockUserRepository.save.mockImplementation(async (user) => user);
+      mockJwtService.sign.mockReturnValue('mock-jwt-token');
 
       const result = await service.register(registerDto);
 
@@ -62,7 +61,9 @@ describe('AuthService', () => {
         where: { email: registerDto.email },
       });
       expect(mockUserRepository.save).toHaveBeenCalled();
-      expect(result).toHaveProperty('id');
+      expect(result.user.id).toBe('user-1');
+      expect(result.token).toBe('mock-jwt-token');
+      expect(result.access_token).toBe('mock-jwt-token');
     });
 
     it('should throw error if email already exists', async () => {
@@ -70,12 +71,12 @@ describe('AuthService', () => {
         email: 'existing@example.com',
         password: 'password123',
         nombre: 'Test User',
-        rol: 'admin' as const,
+        role: 'admin' as const,
       };
 
       mockUserRepository.findOne.mockResolvedValue({ id: 1, email: registerDto.email });
 
-      await expect(service.register(registerDto)).rejects.toThrow();
+      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
     });
   });
 
@@ -88,11 +89,13 @@ describe('AuthService', () => {
 
       const hashedPassword = await bcrypt.hash(loginDto.password, 10);
       const user = {
-        id: 1,
+        id: 'user-1',
         email: loginDto.email,
         password: hashedPassword,
         nombre: 'Test User',
-        rol: 'admin',
+        role: 'admin',
+        tenantId: 'tenant-1',
+        isActive: true,
       };
 
       mockUserRepository.findOne.mockResolvedValue(user);
@@ -102,6 +105,7 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('token');
       expect(result.token).toBe('mock-jwt-token');
+      expect(result.user.email).toBe(loginDto.email);
     });
 
     it('should throw UnauthorizedException for invalid credentials', async () => {
@@ -114,6 +118,32 @@ describe('AuthService', () => {
 
       await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
+
+    it('should throw UnauthorizedException for a wrong password', async () => {
+      mockUserRepository.findOne.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        password: await bcrypt.hash('password123', 10),
+        isActive: true,
+      });
+
+      await expect(
+        service.login({ email: 'test@example.com', password: 'wrongpassword' }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw UnauthorizedException for inactive users', async () => {
+      mockUserRepository.findOne.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        password: await bcrypt.hash('password123', 10),
+        isActive: false,
+      });
+
+      await expect(
+        service.login({ email: 'test@example.com', password: 'password123' }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
   });
 
   describe('validateUser', () => {
@@ -123,11 +153,11 @@ describe('AuthService', () => {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = {
-        id: 1,
+        id: 'user-1',
         email,
         password: hashedPassword,
         nombre: 'Test User',
-        rol: 'admin',
+        role: 'admin',
       };
 
       mockUserRepository.findOne.mockResolvedValue(user);
@@ -145,6 +175,16 @@ describe('AuthService', () => {
       const result = await service.validateUser('test@example.com', 'wrongpassword');
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('findById', () => {
+    it('should find a user by id', async () => {
+      const user = { id: 'user-1', email: 'test@example.com' };
+      mockUserRepository.findOne.mockResolvedValue(user);
+
+      await expect(service.findById('user-1')).resolves.toEqual(user);
+      expect(mockUserRepository.findOne).toHaveBeenCalledWith({ where: { id: 'user-1' } });
     });
   });
 });
