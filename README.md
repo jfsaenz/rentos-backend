@@ -93,9 +93,9 @@ npm run test:cov
 
 El coverage esta configurado sobre los servicios centrales de negocio: auth, clientes, vehiculos, reservas, tarifas y RAG. En la ultima verificacion local:
 
-- Test suites: 6 passed
-- Tests: 50 passed
-- Coverage global: 79.51%
+- Test suites: 7 passed
+- Tests: 54 passed
+- Coverage global: 80.53%
 
 ## Postman
 
