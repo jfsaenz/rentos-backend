@@ -21,17 +21,25 @@ services:
     container_name: rentos-backend
     ports:
       - "3001:3001"
+    env_file:
+      - .env
     environment:
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       DATABASE_USER: postgres
       DATABASE_PASSWORD: postgres
       DATABASE_NAME: rentos
-      JWT_SECRET: your-super-secret-jwt-key
-      JWT_EXPIRATION: 7d
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
       PORT: 3001
-      NODE_ENV: production
-      CORS_ORIGIN: http://localhost:3000
+      NODE_ENV: development
+      FRONTEND_URL: http://localhost:3000,https://rentos-alpha.vercel.app
+      CORS_ORIGIN: http://localhost:3000,https://rentos-alpha.vercel.app
     depends_on:
       - postgres
     restart: unless-stopped

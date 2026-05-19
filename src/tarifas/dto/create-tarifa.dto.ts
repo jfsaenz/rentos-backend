@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsEnum, IsBoolean, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsNumber, IsIn, IsBoolean, IsOptional, Allow } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTarifaDto {
@@ -7,7 +7,7 @@ export class CreateTarifaDto {
   nombre: string;
 
   @ApiProperty({ enum: ['descuento_largo', 'fin_semana', 'temporada_alta'] })
-  @IsEnum(['descuento_largo', 'fin_semana', 'temporada_alta'])
+  @IsIn(['descuento_largo', 'fin_semana', 'temporada_alta'])
   tipo: string;
 
   @ApiProperty()
@@ -15,6 +15,7 @@ export class CreateTarifaDto {
   porcentaje: number;
 
   @ApiProperty()
+  @Allow()
   vehiculosAplicables: any;
 
   @ApiProperty({ required: false })

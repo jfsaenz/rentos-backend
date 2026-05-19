@@ -13,31 +13,34 @@ async function bootstrap() {
   // Compression
   app.use(compression());
 
-  // Enable CORS - Allow multiple origins for development and production
+  // CORS: permite frontend local y frontend desplegado en Vercel
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
-    process.env.CORS_ORIGIN,
-    process.env.FRONTEND_URL,
-  ].filter(Boolean);
+    ...(process.env.CORS_ORIGIN || '').split(','),
+    ...(process.env.FRONTEND_URL || '').split(','),
+  ]
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      // Check if origin is allowed
-      if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
-        callback(null, true);
-      } else {
-        // For development, allow all localhost origins
-        if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-          callback(null, true);
-        } else {
-          console.warn(`CORS blocked origin: ${origin}`);
-          callback(new Error('Not allowed by CORS'));
-        }
+      // Permite requests sin origin, como Swagger, curl, Postman o apps móviles
+      if (!origin) {
+        return callback(null, true);
       }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // En desarrollo permite localhost y 127.0.0.1
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        return callback(null, true);
+      }
+
+      console.warn(`CORS blocked origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -83,20 +86,22 @@ async function bootstrap() {
     )
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  
+
   console.log('');
   console.log('🚀 ============================================');
   console.log(`🚀 RentOS Backend running on: http://localhost:${port}`);
   console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
   console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
-  console.log(`🔒 Security: Validation, Logging, Error Handling`);
-  console.log(`📊 Features: Audit, Reports, Backup, RAG AI`);
+  console.log('🔒 Security: Validation, Logging, Error Handling');
+  console.log('📊 Features: Audit, Reports, Backup, RAG AI');
   console.log('🚀 ============================================');
   console.log('');
 }
+
 bootstrap();
